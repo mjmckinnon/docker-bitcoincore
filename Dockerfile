@@ -53,20 +53,31 @@ RUN \
     && find /install -name "lib*.la" -delete \
     && find /install -name "lib*.a" -delete
 
+# Package up compiled binaries
+WORKDIR /install
+RUN \
+    echo "** packaging up installed files **" \
+    && set -o pipefail \
+    && find . | sort | \
+    tar --no-recursion --mode='u+rw,go+r-w,a+X' --owner=0 --group=0 -c -T - | \
+    gzip -9n > /root/dist-files.tar.gz
+
 # Last stage
 FROM ubuntu:20.04
 LABEL maintainer="Michael J. McKinnon <mjmckinnon@gmail.com>"
-
-# Copy from first stage /install -> /
-COPY --from=builder /install /
 
 # Put our entrypoint script in
 COPY ./docker-entrypoint.sh /usr/local/bin/
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 
+# Copy the dist archive from build image
+COPY --from=builder /root/dist-files.tar.gz /root
+
 ENV DEBIAN_FRONTEND="noninteractive"
 RUN \
-    echo "** update and setup ** " \
+    echo "** extract compiled files **" \
+    && tar -xzvf /root/dist-files.tar.gz -C / \
+    && echo "** update and install dependencies ** " \
     && apt-get update \
     && apt-get install -y --no-install-recommends \
     gosu \
@@ -77,7 +88,6 @@ RUN \
     && chmod +x /usr/local/bin/docker-entrypoint.sh \
     && groupadd -g 1000 bitcoin \
     && useradd -u 1000 -g bitcoin bitcoin
-
 
 ENV DATADIR="/data"
 EXPOSE 8333
