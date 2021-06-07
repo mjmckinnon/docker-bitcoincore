@@ -57,7 +57,6 @@ RUN \
 WORKDIR /install
 RUN \
     echo "** packaging up installed files **" \
-    && set -o pipefail \
     && find . | sort | \
     tar --no-recursion --mode='u+rw,go+r-w,a+X' --owner=0 --group=0 -c -T - | \
     gzip -9n > /root/dist-files.tar.gz
