@@ -1,7 +1,7 @@
 FROM mjmckinnon/ubuntubuild as builder
 
 # Bitcoin Core
-ARG VERSION="v0.21.1"
+ARG VERSION="v0.23"
 ARG GITREPO="https://github.com/bitcoin/bitcoin.git"
 ARG GITNAME="bitcoin"
 ARG COMPILEFLAGS="--disable-tests --disable-bench --enable-cxx --disable-shared --with-pic --disable-wallet --without-gui --without-miniupnpc"
