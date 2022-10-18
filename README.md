@@ -1,5 +1,7 @@
 # Docker Image for Bitcoin Core
 
-This has been created to ensure I had a docker image for Bitcoin Core that is built from the actual source code, so as not to have to trust any other providers of pre-compiled docker images.
+This docker image has been created to run Bitcoin Core from an image that is built from the actual source code from the project,
+so as not to have to trust any other providers of pre-compiled docker images. Some other images cannot be trusted.
 
 Now updated to: ```v23.0```
+Build and operation uses: ```Ubuntu 22.04```
