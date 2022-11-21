@@ -31,33 +31,38 @@ LABEL maintainer="Michael J. McKinnon <mjmckinnon@gmail.com>"
 
 # Put our entrypoint script in
 COPY ./docker-entrypoint.sh /usr/local/bin/
-ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 
 # Copy the compiled files
 COPY --from=builder /dist-files/ /
 
-RUN \
-    echo "** setup the bitcoin user **" \
-    && groupadd -g 1000 bitcoin \
-    && useradd -u 1000 -g bitcoin bitcoin
-
+# Install dependencies and cleanup
 ENV DEBIAN_FRONTEND="noninteractive"
 RUN \
     echo "** update and install dependencies ** " \
     && apt-get update \
     && apt-get install -y --no-install-recommends \
-    gosu \
-    libboost-filesystem1.74.0 \
-    libboost-thread1.74.0 \
-    libevent-2.1-7 \
-    libevent-pthreads-2.1-7 \
-    libczmq4 \
+       gosu \
+       libboost-filesystem1.74.0 \
+       libboost-thread1.74.0 \
+       libevent-2.1-7 \
+       libevent-pthreads-2.1-7 \
+       libczmq4 \
+    && echo "** cleanup **" \
     && apt-get clean autoclean \
     && apt-get autoremove --yes \
     && rm -rf /var/lib/{apt,dpkg,cache,log}/ \
     && rm -rf /tmp/* /var/tmp/*
 
+# Create our bitcoin system account and group
+RUN \
+    echo "** setup the bitcoin user **" \
+    && groupadd -r bitcoin \
+    && useradd --no-log-init -m -d /data -r -g bitcoin bitcoin
+
 ENV DATADIR="/data"
 EXPOSE 8333
 VOLUME /data
+
+USER bitcoin
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 CMD ["bitcoind", "-printtoconsole"]
